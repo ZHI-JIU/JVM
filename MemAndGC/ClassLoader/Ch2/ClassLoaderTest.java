@@ -28,5 +28,7 @@ public class ClassLoaderTest {
         // null
         System.out.println(stringCL);
 
+        // 获取引导类加载器可以加载的
+
     }
 }

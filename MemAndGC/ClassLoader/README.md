@@ -246,7 +246,7 @@ public class ClassLoaderTest {
 #### 3.2.1 扩展类加载器（Extension ClassLoader）
 - 使用Java实现，Launcher$ExtClassLoader
 - 继承ClassLoader，父类加载器为引导类加载器
-- 用来加载**扩展类**（jre/lib/ext目录下的类），自动义的类若放在这个路径下，也是用扩展类加载器来加载的。
+- 用来加载**扩展类**（**jre/lib/ext**目录下的类），自动义的类若放在这个路径下，也是用扩展类加载器来加载的。
 
 #### 3.2.1 系统类加载器（AppClassLoader）
 - 使用Java实现，Launcher$AppClassLoader
