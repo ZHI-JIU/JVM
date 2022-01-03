@@ -242,19 +242,44 @@ public class ClassLoaderTest {
 - 不继承ClassLoader，没有父加载器
 - 扩展类和系统类加载器也算是核心类库，也是用引导类加载器来加载的。
 - 出于安全考虑，只加载包名为java、javax、sun等开头的类。
+```java
+// 获取引导类加载器可以加载的类
+System.out.println("******引导类加载器******");
+URL[] urls = sun.misc.Launcher.getBootstrapClassPath().getURLs();
+Arrays.stream(urls).forEach(url -> System.out.println(url.toExternalForm()));
+// 任选一个看下类加载器
+System.out.println("Provider CL: " + Provider.class.getClassLoader() + "\n");
+```
 
-#### 3.2.1 扩展类加载器（Extension ClassLoader）
+#### 3.2.2 扩展类加载器（Extension ClassLoader）
 - 使用Java实现，Launcher$ExtClassLoader
 - 继承ClassLoader，父类加载器为引导类加载器
 - 用来加载**扩展类**（**jre/lib/ext**目录下的类），自动义的类若放在这个路径下，也是用扩展类加载器来加载的。
+```java
+System.out.println("******扩展类加载器******");
+String extDirs = System.getProperty("java.ext.dirs");
+Arrays.stream(extDirs.split(";")).forEach(System.out::println);
+// 任选一个看下类加载器
+System.out.println("AccessBridge CL: " + AccessBridge.class.getClassLoader() + "\n");
+```
 
-#### 3.2.1 系统类加载器（AppClassLoader）
+#### 3.2.3 系统类加载器（AppClassLoader）
 - 使用Java实现，Launcher$AppClassLoader
 - 继承ClassLoader，父类加载器为扩展类加载器
 - 加载环境变量``classpath``或系统属性``java.class.path``指定路径下的类
 - 默认的类加载器
 - 通过``ClassLoader$getSystemClassLoader()``方法来获取该类加载器
 
+#### 3.2.4 自定义类加载器
+- 类的加载几乎由上面三种加载器配合执行的，也可以自定义类加载器
+- 为什么要自定义类加载器？ 
+  - 隔离加载类，不同的中间件可能路径和类名相同。
+  - 修改类加载的方式
+  - 扩展加载源
+  - 防止源码泄露
+- 自定义类加载器的步骤
+  - 继承java.lang.ClassLoader，重写findClass
+  - 继承URLClassLoader，可以避免重写findClass，避免读取字节码文件
 
 ## 四、ClassLoader的使用说明
 

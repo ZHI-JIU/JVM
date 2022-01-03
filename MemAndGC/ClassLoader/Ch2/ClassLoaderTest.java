@@ -1,5 +1,12 @@
 package MemAndGC.ClassLoader.Ch2;
 
+import com.sun.java.accessibility.AccessBridge;
+import sun.security.util.CurveDB;
+
+import java.net.URL;
+import java.security.Provider;
+import java.util.Arrays;
+
 public class ClassLoaderTest {
     public static void main(String[] args) {
         // 获取系统类加载器
@@ -28,7 +35,18 @@ public class ClassLoaderTest {
         // null
         System.out.println(stringCL);
 
-        // 获取引导类加载器可以加载的
+        // 获取引导类加载器可以加载的类
+        System.out.println("******引导类加载器******");
+        URL[] urls = sun.misc.Launcher.getBootstrapClassPath().getURLs();
+        Arrays.stream(urls).forEach(url -> System.out.println(url.toExternalForm()));
+        // 任选一个看下类加载器
+        System.out.println("Provider CL: " + Provider.class.getClassLoader() + "\n");
+
+        System.out.println("******扩展类加载器******");
+        String extDirs = System.getProperty("java.ext.dirs");
+        Arrays.stream(extDirs.split(";")).forEach(System.out::println);
+        // 任选一个看下类加载器
+        System.out.println("AccessBridge CL: " + AccessBridge.class.getClassLoader() + "\n");
 
     }
 }
