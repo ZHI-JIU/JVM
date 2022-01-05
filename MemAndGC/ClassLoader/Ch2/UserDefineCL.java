@@ -9,10 +9,15 @@ public class UserDefineCL {
         protected Class<?> findClass(String name) throws ClassNotFoundException {
             byte[] result = getClassFromCustomPath(name);
             if (Objects.isNull(result)) {
-                throw new FileNotFoundException();
+                try {
+                    throw new FileNotFoundException();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             } else {
                 return defineClass(name, result, 0, result.length);
             }
+            return null;
         }
 
         private byte[] getClassFromCustomPath(String name) {
