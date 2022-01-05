@@ -7,9 +7,9 @@
 - [其他](#六、其他)
 
 ## 一、内存结构概述
-- 简化图  
+- 简化图
 
-![image](https://github.com/ZHI-JIU/JVM/blob/main/MemAndGC/pic/JVMStructure.jpg)
+![image](D:\Code\JVM\MemAndGC\pic\JVMStructure.jpg)
 
 - 细化图  
 
