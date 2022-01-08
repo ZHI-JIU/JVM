@@ -1,7 +1,6 @@
-package MemAndGC.ClassLoader.Ch2;
+package MemAndGC.No1_ClassLoader.Ch2;
 
 import com.sun.java.accessibility.AccessBridge;
-import sun.security.util.CurveDB;
 
 import java.net.URL;
 import java.security.Provider;

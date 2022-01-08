@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch2;
+package MemAndGC.No1_ClassLoader.Ch2;
 
 import java.io.FileNotFoundException;
 import java.util.Objects;

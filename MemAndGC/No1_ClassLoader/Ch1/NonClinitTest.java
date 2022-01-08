@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch1;
+package MemAndGC.No1_ClassLoader.Ch1;
 
 public class NonClinitTest {
     // 虽然有类变量，但是没有赋值

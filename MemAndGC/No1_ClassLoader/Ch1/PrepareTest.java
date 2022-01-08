@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch1;
+package MemAndGC.No1_ClassLoader.Ch1;
 
 public class PrepareTest {
     // a在准备阶段赋值为0，在初始化阶段赋值为1；

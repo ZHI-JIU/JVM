@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch1;
+package MemAndGC.No1_ClassLoader.Ch1;
 
 public class ClinitTest {
     // 任何类声明后，内部至少存在一个构造器

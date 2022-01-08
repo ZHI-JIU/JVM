@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch1;
+package MemAndGC.No1_ClassLoader.Ch1;
 
 public class ExtendClinitTest {
     static class Father {

@@ -1,4 +1,4 @@
-package MemAndGC.ClassLoader.Ch1;
+package MemAndGC.No1_ClassLoader.Ch1;
 
 public class SynchronizeTest {
     public static void main(String[] args) {
