@@ -110,6 +110,8 @@ Exception in thread "main" java.lang.StackOverflowError
 - 方法返回地址：方法正常退出或异常退出的定义
 - 附加信息
 
+下面三个统称帧数据区。
+
 ![image](stackFrame)
 
 ## 局部变量表
@@ -193,10 +195,41 @@ Exception in thread "main" java.lang.StackOverflowError
 - jvm的解释引擎是基于操作数栈的执行引擎。
 
 ## 栈顶缓存技术
+jvm基于栈来实现，入栈出栈导致指令更多，操作数存储在内存中，频繁io影响执行速度。
+
+为了解决这个问题，hotspot jvm提出了栈顶缓存技术，将栈顶元素缓存在物理cpu的寄存器中，降低内存IO。
 
 ## 动态链接
+- 动态链接又称为指向运行时常量池的方法引用。
+- 每一栈帧中都包含一个指向运行时常量池中该栈帧所属方法的引用。
+- 存储这个引用的作用：为了支持当前方法的代码能够实现动态链接。
+- 动态链接的对应是静态解析。
+- java源文件被编译成字节码文件时，所有的变量和方法引用都作为**符号引用**保存在class文件的常量池里。描述一个方法调用另外一个方法，就是通过常量池中指向方法的符号引用来表示的。
+  
+  ![image](DynamicLinking)
+  
+  下面开始套娃
+  ```mermaid
+  graph LR;
+  A[#7 methodref_info] --> B[#8 class_info]
+  A --> C[#31 NameAndType_info]
+  B --> D[#32 Utf8_info class_info]
+  C --> E[#19 Utf8_info method_name]
+  C --> F[#13 Utf8_info return_type]
+  ```
+  
+  ![image](DynamicLinking2)
+- class文件中的常量池在运行以后，会放到方法区中的运行时常量池中。
+- 动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用。
 
-## 方法的调用：解析与分派
+  <img alt="image" src="D:\Program Files (x86)\JetBrains\JVM\MemAndGC\No2_RuntimeDataArea\pic\DynamicLinking3.png"/>
+
+### 为什么需要常量池
+多个方法可能调用同一个方法或常量，如果每个栈帧中都存一份占用空间。存在线程共享的区块，只要在jvm占中存储一个地址即可。
+常量池提供了一些符号和常量，便于指令识别。也可以通过使用更小的空间达到相同的效果。
+
+### 方法的调用：解析与分派
+
 
 ## 方法返回地址
 
