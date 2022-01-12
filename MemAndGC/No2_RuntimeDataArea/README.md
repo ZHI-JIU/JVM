@@ -1,7 +1,7 @@
 # 运行时数据区
 - [程序计数器](https://github.com/ZHI-JIU/JVM/tree/main/MemAndGC/No2_RuntimeDataArea/PcRegister)
 - [虚拟机栈](https://github.com/ZHI-JIU/JVM/tree/main/MemAndGC/No2_RuntimeDataArea/JVMStack)
-- [本地方法接口]()(实际上并不在运行时数据区中)
+- [本地方法接口](https://github.com/ZHI-JIU/JVM/tree/main/MemAndGC/No2_RuntimeDataArea/NativeMethodInterface)(实际上并不在运行时数据区中)
 - [本地方法栈]()
 - [堆]()
 - [方法区]()
