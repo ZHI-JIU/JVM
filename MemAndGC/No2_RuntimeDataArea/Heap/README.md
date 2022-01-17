@@ -126,16 +126,103 @@
 
 full gc是开发或调优中要尽量避免的，这样STW的时间会短。
 
-## 堆空间分代思想
-
 ## 内存分配策略
+### 一般情况
+- 对象在eden出生并经过一次MinorGC后仍然存活，并且能被survivor区容纳的话，被移动到Survivor区中。并将年龄设为1。
+- 对象在survivor区每熬过一次MinorGC，年龄增加一岁。
+- 年龄达到阈值时（默认15，每个JVM、每个GC都有所不同），晋升到老年代。
+- 阈值可以通过``-XX:MaxTenuringThreshold``来设置。
+
+### 对象提升规则
+不同年龄段的对象分配原则：
+- 优先分配到eden区
+- 大对象直接分配到老年代，应尽量避免程序中出现过多的大对象
+  - 大对象：在物理内存中比较长的连续的对象。如长字符串、数组
+- 长期存活的对象分配到老年代
+- 动态年龄判断
+  - 如果survivor区中相同年龄的所有对象大小的总和大于survivor区空间的一半，大于等于该年龄的对象可以直接进入到老年代，无需等到MaxTenuringThreshold。
+- 空间分配担保
+  - 大量对象在MinorGC之后还是存活的， survivor区剩余空间又比较小，需要老年代来担保，把survivor区容纳不下的直接放到老年代。
+  - ``-XX: HandlePromotionFailure``
+  - 在发生minorGC之前，jvm会检查**老年代最大可用的连续内存空间**是否大于**新生代所有对象的总空间**：
+    - 大于：此次minor GC是安全的。
+    - 小于：jvm会查看``-XX: HandlePromotionFailure``，是否设置了允许担保失败。
+      - 值为true，会继续检查老年代最大可用连续空间是否大于**历次晋升到老年代的对象的平均大小**。
+        - 大于：尝试进行一次minorGC，这次minorGC依然是有风险的。
+        - 小于：进行一次Full GC。
+      - 值为false：进行一次full gc。
+  
+  - JDK7及之后该参数无意义，只要**老年代最大可用的连续内存空间**大于**新生代所有对象的总空间**或**历次晋升到老年代的对象的平均大小**，就会进行full gc。
 
 ## 为对象分配内存：TLAB
+### 什么是TLAB
+- Thread Local Allocation Buffer
+- 从内存模型而不是垃圾回收的角度，对eden区继续划分，jvm为每个线程分配一个私有缓存区域。
+- 多线程同时分配内存时，使用TLAB可以避免线程安全问题，提升内存分配的速度。
+- 所有openJDK衍生出来的jvm都提供了TLAB的设计。
+
+### 为什么要有这个结构
+  - 堆区是线程共享的，任何线程都可以访问堆区中的共享数据，方便线程间通信。
+  - 对象的创建都是在堆中，有线程不安全问题。
+  - 为了避免多个线程操作同一对象，需要加锁，这会影响分配速度。
+
+### 其他
+- 不是所有对象都能够在TLAB成功分配，因为这块区域较小，但是jvm还是把TLAB作为首选的分配区域。
+- 不够分以后，jvm尝试通过**加锁机制**确保数据操作的原子性，直接在eden区中分配内存。
+- ``-XX:UseTLAB``：设置是否开启TLAB空间。默认开启。
+- 默认情况下，TLAB空间较小，是整个eden区的**1%**。这样才能保证可以支持多个线程。不会几个线程就把eden区占满了。
+- ``-XX:TLABWasteTargetPercent``：设置TLAB占用eden空间的百分比。
+
+### 分配过程
+![image](TLAB)
 
 ## 堆空间的参数设置
-- XX 
+- ``-XX:+PrintFlagsInitial``：查看jvm中所有的参数的默认初始值
+- ``-XX:+PrintFlagsFinal``：查看所有的参数的最终值
+- 查看jvm中具体某个参数的值：
+  1. 将程序运行起来
+  2. 在运行期间执行jps拿到进程号
+  3. jinfo -flag [参数名] [进程号]
+- ``-Xms``: 初始堆空间（默认是物理内存的1/64）
+  - The initial size of the heap for the young generation can be set using the -Xmn option or the ``-XX:NewSize`` option.
+- ``-Xmx``: 最大堆空间（默认是物理内存的1/4）
+  - The -Xmx option is equivalent to ``-XX:MaxHeapSize``
+- ``-Xmn``: Sets the initial and maximum size (in bytes) of the heap for the young generation (nursery)
+  - Instead of the -Xmn option to set both the initial and maximum size of the heap for the young generation, you can use ``-XX:NewSize`` to set the initial size and  ``-XX:MaxNewSize`` to set the maximum size.
+- ``-XX:NewRatio=ratio``: Sets the ratio between young and old generation sizes. **By default, this option is set to 2**. The following example shows how to set the young/old ratio to 1:
+  ``-XX:NewRatio=1``
+- ``-XX:InitialSurvivorRatio=ratio``：新生代和S0、s1的比例
+- ``-XX:MaxTenuringThreshold=threshold``：Sets the maximum tenuring threshold for use in adaptive GC sizing. **The largest value is 15**. **The default value is 15 for** the parallel (throughput) collector, and **6 for the CMS collector**.
+- ``-XX:+PrintGCDetails``：
+  Enables printing of detailed messages at every GC. By default, this option is disabled.
+- ``-XX:+PrintGC``：
+  Enables printing of messages at every GC. By default, this option is disabled.
+- ``-verbose:gc``：
+  Displays information about each garbage collection (GC) event.
+- ``-XX: HandlePromotionFailure``：是否设置空间担保
+- ``-XX:+DoEscapeAnalysis``：是否开启逃逸分析（JDK 6u23之后默认开启）
+- ``-XX:+PrintEscapeAnalysis``：查看套系分析的筛选结果。
 - jstat -gc 进程号 查看gc情况
 - jps 查看当前进程
 - -XX：+PrintGCDetails
+- jinfo
 
 ## 堆是分配对象的唯一选择么
+堆是GC的重点区域，是影响性能的主要原因。
+主要是要降低GC的频率，再主要一点，是降低老年代的GC。
+
+两种优化思路：
+1. 调整jvm参数，减少gc。
+2. 将对象分配在堆以外的空间。
+
+随着JIT（编译器）的发展和逃逸分析技术的成熟，**栈上分配、标量替换优化技术**会导致微妙的变化，对象分配到堆上不再这么绝对。
+- 如果经过逃逸分析后发现，一个对象没有逃逸处方法的话，可能被优化成栈上分配。
+- taobaoVM的GCIH（GC invisible heap）技术实现了堆外存储，将生命周期较长的java对象分配在堆外，不由GC管理，降低GC的频率。
+
+### 逃逸分析
+编译器能够分析处一个对象的引用的使用范围，从而判断是否发生了逃逸。
+
+- 逃逸分析的基本行为就是分析对象的动态作用域：
+  - 对象在方法中被定义，对象只在方法内部使用，则认为没有发生逃逸。
+  - 对象在方法中被定义，又被外部方法引用，则认为发生了逃逸。（例如作为参数传到其他方法中的对象）
+    ![image](escapeAnalyse)
